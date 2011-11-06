@@ -3,3 +3,7 @@ Sickle Cell Tools [SCT]
 =========================
 
 Sickle Cell Tools is a suite of utilities for people suffering from Sickle Cell Anaemia.
+
+====== UTILITIES =======
+1. SS_NOTIFY: Sends automated sick notices by email
+
