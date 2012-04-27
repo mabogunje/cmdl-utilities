@@ -6,6 +6,7 @@
 
 import argparse;
 import smtplib;
+import sys;
 
 from email.mime.text import MIMEText;
 from time import strftime;
@@ -108,8 +109,10 @@ if __name__ =='__main__':
         symptom = parse_symptom(args);
     except IndexError:
         print "Severity ranges must be of the format 'min-max' i.e 1-2";
+        sys.exit();
     except AssertionError:
         print "Severity out of range";
+        sys.exit();
     else:
         email = compose_email(symptom, args.msg);
         

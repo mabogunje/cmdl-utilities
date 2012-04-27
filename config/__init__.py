@@ -4,11 +4,11 @@
 @summary: SCT Configuration
 '''
 
-CONFIG = { 'SERVER' : 'smtp.gmail.com',
+CONFIG = { 'SERVER' : '',
            'PORT' : 587,
-           'USERNAME': 'd4mola@gmail.com',
-           'PASSWORD': 'mabogunje',
-           'USER': 'Damola Mabogunje',
-           'EMAIL': 'aim27@drexel.edu'
+           'USERNAME': '',
+           'PASSWORD': '',
+           'USER': '',
+           'EMAIL': ''
          };
 
