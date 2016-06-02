@@ -118,6 +118,7 @@ if __name__ =='__main__':
         
     try:
         notify(email, args.to);
-    except:
+    except Exception as error:
+        print error;
         print 'Unable to send email';
 

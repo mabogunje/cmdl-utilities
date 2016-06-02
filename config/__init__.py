@@ -4,7 +4,7 @@
 @summary: SCT Configuration
 '''
 
-CONFIG = { 'SERVER' : '',
+CONFIG = { 'SERVER' : 'smtp.gmail.com',
            'PORT' : 587,
            'USERNAME': '',
            'PASSWORD': '',
