@@ -1,10 +1,11 @@
 '''
-@author: Damola Mabogunje
-@contact: damola@mabogunje.net
-@summary: An automated sick notification system -  sends sick notices by email
+@author: Damola Mabogunje <damola@mabogunje.net>
+@summary: A Command Line Utility for Sick Notifications
+    -  Sends notices by email
 '''
 
 import argparse;
+import ConfigParser as configparser;
 import smtplib;
 import sys;
 import subprocess;
@@ -14,17 +15,15 @@ from email.mime.multipart import MIMEMultipart;
 from time import strftime;
 from datetime import datetime;
 
-from config import *;
 from symptoms import *;
 
 try:
     import pygments;
     import markdown;
-    import cfgparse;
 except ImportError:
-        print 'This script requires pygements and markdown and cfgparse to be installed.';
+        print 'This script requires pygements and markdown to be installed.';
         print 'Please:';
-        print 'pip install pygments markdown cfgparse or easy_install pygments markdown cfgparse';
+        print 'pip install pygments markdown or easy_install pygments markdown';
         sys.exit(0);
 
 def parse_symptom(args):
@@ -45,40 +44,55 @@ def parse_symptom(args):
         return Symptom();
 
 def compose_email(symptom, msg, template):
-    template = open(template, 'r');
+    '''
+    Creates email notification using template in plain text and HTML
+    '''
+
+    # Read in Markdown Template
+    try:
+        template = open(template, 'r');
+    except IOError:
+        print 'No template at %s. Please create one.' % template; 
+        sys.exit(1);
+
     message = template.read();
     
+    # Populate template with values
     values = { "status": symptom.status(),
                "duration": symptom.duration(),
                "forecast": symptom.forecast(),
                "time": symptom.respite().capitalize(),
                "rsvp": symptom.effect(),
                "msg": msg,
-               "user": CONFIG.get('USER')
+               "user": CONFIG.get('USER', 'NAME')
              };
     message = message % values;
     message = message.strip();
 
+    # Convert to Stylized HTML
     css = subprocess.check_output(['pygmentize', '-S', 'default', '-f', 'html']);
     html = markdown.markdown(message, ['extra', 'codehilite']);
     html = '<style type="text/css">'+css+'</style>'+html;
 
+    # Create Email
     email = MIMEMultipart('alternative');
     email['Subject'] = "Sick Notice (%s)" % datetime.today().strftime("%h %d %Y");
-    email['From'] = CONFIG.get('EMAIL');
+    email['From'] = CONFIG.get('USER', 'EMAIL');
     email['To'] = ', '.join(args.to);
 
+    # Attach Plain Text and HTML versions
     email.attach(MIMEText(message, 'plain'));
     email.attach(MIMEText(html, 'html'));
+
     return email;
 
 def notify(email, addresses):
 
-    mailer = smtplib.SMTP(CONFIG.get('SERVER'), CONFIG.get('PORT'));
+    mailer = smtplib.SMTP(CONFIG.get('SICKLY', 'MAIL_SERVER'), CONFIG.get('SICKLY', 'PORT'));
     mailer.ehlo();
     mailer.starttls();
     mailer.ehlo();
-    mailer.login(CONFIG.get('USERNAME'), CONFIG.get('PASSWORD'));
+    mailer.login(CONFIG.get('SICKLY', 'USERNAME'), CONFIG.get('SICKLY', 'PASSWORD'));
     mailer.sendmail(email['From'], addresses, email.as_string());
     mailer.close();
 
@@ -86,8 +100,21 @@ def notify(email, addresses):
 
 
 if __name__ =='__main__':
+    # Get Default Configuration
+    CONFIG_FILE = 'config.ini';
+    CONFIG = configparser.ConfigParser();
+
+    try:
+        CONFIG.read(CONFIG_FILE);
+        assert('USER' in CONFIG.sections())
+    except:
+        print 'There is no configuration file at %s. Please create one first. See config.sample.ini for an example' % CONFIG_FILE;
+        sys.exit(1);
+
+
+
     '''
-    Processes command-line arguments and email's a sick notification
+    Process command-line arguments and email's a sick notification
     '''
     
     parser = argparse.ArgumentParser(description='Process notification arguments');
@@ -103,7 +130,8 @@ if __name__ =='__main__':
                         'else duration >= TIME'
                        );
 
-    parser.add_argument('-t', '--template', nargs='?', default=CONFIG.get('TEMPLATE'),
+    parser.add_argument('-t', '--template', nargs='?', default=CONFIG.get('SICKLY', 'TEMPLATE'),
+                        required=False,
                         help='A Markdown Template to use for your email');
 
     parser.add_argument('-m', '--msg', nargs='?', default='NONE', help='Extra notes');

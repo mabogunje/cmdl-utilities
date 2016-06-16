@@ -4,14 +4,14 @@ Oh no! %(user)s has fallen sick.
 
 ## How Bad Is It?
 
-* __Status:__ %(status)s for %(duration)s
-* __Might Remain/Become:__ %(forecast)s
+* __Severity:__ %(status)s for %(duration)s
+* __Long Term Prediction:__ %(forecast)s
 
 ## How Much Time Till Recovery?
 
 >   %(time)s
 
-## Can I Still Come In?
+## Will I Come In?
 
 __%(rsvp)s__
 
