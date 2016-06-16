@@ -106,7 +106,8 @@ if __name__ =='__main__':
 
     try:
         CONFIG.read(CONFIG_FILE);
-        assert('USER' in CONFIG.sections())
+        assert('USER' in CONFIG.sections());
+        assert('SICKLY' in CONFIG.sections());
     except:
         print 'There is no configuration file at %s. Please create one first. See config.sample.ini for an example' % CONFIG_FILE;
         sys.exit(1);
