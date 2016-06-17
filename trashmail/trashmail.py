@@ -1,6 +1,9 @@
+#!/usr/bin/env python
+
 '''
 @authors: Radek Wojcik, Damola Mabogunje <damola@mabogunje.net>
-@summary: This script deletes emails from a given account. It builds on Radek Wojcik's work.
+@summary: A Command Line Utility for Deleting Old Emails.
+    - It builds on Radek Wojcik's work.
 @see: http://radtek.ca/blog/delete-old-email-messages-programatically-using-python-imaplib/ 
 '''
 
@@ -9,6 +12,8 @@ import ConfigParser as configparser;
 import getpass;
 import imaplib;
 import datetime;
+
+from os.path import dirname, abspath;
 
 def connect_imap(server, mailbox, password):
     m = imaplib.IMAP4_SSL(server)  # server to connect to
@@ -61,8 +66,11 @@ class PasswordAction(argparse.Action):
         setattr(namespace, self.dest, mypass);
 
 if __name__ == '__main__':
-    # Get Default Settings
-    CONFIG_FILE = 'config.ini';
+
+    # Get Default Configuration
+    SCRIPT_DIR = dirname( abspath(__file__) );
+    PARENT_DIR = dirname( dirname( abspath(__file__) ) );
+    CONFIG_FILE = PARENT_DIR + '/config.ini';
     CONFIG = configparser.ConfigParser();
 
     try:
@@ -73,11 +81,7 @@ if __name__ == '__main__':
         print 'There is no configuration file at %s. Please create one first. See config.sample.ini for an example' % CONFIG_FILE;
         sys.exit(1);
     
-    '''
-    Processes command-line arguments and deletes mail in a folder
-    before a certain time
-    '''
-
+    # Setup Command Line Parser
     parser = argparse.ArgumentParser('Process email deletion srguments');
     
     parser.add_argument('-s', '--server', nargs='?',
@@ -106,14 +110,12 @@ if __name__ == '__main__':
     parser.set_defaults(remove=False);
     args = parser.parse_args();
 
-    '''
-    Connect to account with specified args and delete/archive email
-    '''
 
+    # Connect to account with specified args and delete/archive email
     m_con = connect_imap(args.server, args.mailbox, args.password);
     move_to_trash_before_date(m_con, args.folder, args.trash, args.before)  # folder cleanup
  
     if(args.remove): 
-        empty_folder(m_con, args.trash, do_expunge=True)  # can send do_expunge=False, default True
+        empty_folder(m_con, args.trash, do_expunge=True);  # can send do_expunge=False, default True
  
-    disconnect_imap(m_con)
+    disconnect_imap(m_con);

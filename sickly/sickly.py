@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 '''
 @author: Damola Mabogunje <damola@mabogunje.net>
 @summary: A Command Line Utility for Sick Notifications
@@ -7,9 +9,10 @@
 import argparse;
 import ConfigParser as configparser;
 import smtplib;
-import sys;
 import subprocess;
+import sys;
 
+from os.path import dirname, abspath;
 from email.mime.text import MIMEText;
 from email.mime.multipart import MIMEMultipart;
 from time import strftime;
@@ -100,8 +103,11 @@ def notify(email, addresses):
 
 
 if __name__ =='__main__':
+
     # Get Default Configuration
-    CONFIG_FILE = 'config.ini';
+    SCRIPT_DIR = dirname( abspath(__file__) );
+    PARENT_DIR = dirname( dirname( abspath(__file__) ) );
+    CONFIG_FILE = PARENT_DIR + '/config.ini';
     CONFIG = configparser.ConfigParser();
 
     try:
@@ -112,12 +118,7 @@ if __name__ =='__main__':
         print 'There is no configuration file at %s. Please create one first. See config.sample.ini for an example' % CONFIG_FILE;
         sys.exit(1);
 
-
-
-    '''
-    Process command-line arguments and email's a sick notification
-    '''
-    
+    # Setup Command Line Parser
     parser = argparse.ArgumentParser(description='Process notification arguments');
 
     parser.add_argument('-s', '--severity', metavar='1-4', nargs='?', 
@@ -131,7 +132,7 @@ if __name__ =='__main__':
                         'else duration >= TIME'
                        );
 
-    parser.add_argument('-t', '--template', nargs='?', default=CONFIG.get('SICKLY', 'TEMPLATE'),
+    parser.add_argument('-t', '--template', nargs='?', default='/'.join((SCRIPT_DIR, CONFIG.get('SICKLY', 'TEMPLATE'))),
                         required=False,
                         help='A Markdown Template to use for your email');
 
@@ -140,6 +141,7 @@ if __name__ =='__main__':
 
     args = parser.parse_args();
     
+    # Parse Arguments and Compose Email
     try:
         symptom = parse_symptom(args);
     except IndexError:
@@ -150,7 +152,8 @@ if __name__ =='__main__':
         sys.exit();
     else:
         email = compose_email(symptom, args.msg, args.template);
-        
+
+    # Send Email Notification
     try:
         notify(email, args.to);
     except Exception as error:
