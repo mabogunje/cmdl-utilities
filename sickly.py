@@ -18,7 +18,7 @@ from email.mime.multipart import MIMEMultipart;
 from time import strftime;
 from datetime import datetime;
 
-from symptoms import *;
+from sickly.symptoms import *;
 
 try:
     import pygments;
@@ -106,10 +106,8 @@ if __name__ =='__main__':
 
     # Get Default Configuration
     SCRIPT_DIR = dirname( realpath(__file__) );
-    PARENT_DIR = dirname( dirname( realpath(__file__) ) );
-    CONFIG_FILE = PARENT_DIR + '/config.ini';
+    CONFIG_FILE = SCRIPT_DIR + '/config.ini';
     CONFIG = configparser.ConfigParser();
-    print PARENT_DIR, SCRIPT_DIR;
 
     try:
         CONFIG.read(CONFIG_FILE);
@@ -122,15 +120,14 @@ if __name__ =='__main__':
     # Setup Command Line Parser
     parser = argparse.ArgumentParser('Email a Sick Notice about the SEVERITY of your symptoms TO one or more email addresses');
 
-    parser.add_argument('-s', '--severity', metavar='SEVERITY: 1-3', nargs='?', 
+    parser.add_argument('-s', '--severity', metavar='SEVERITY: 1=Mild | 2=Medium | 3=Severe', nargs='?', 
                         default=str(SEVERITY.MEDIUM),
                         help='Severity of the symptom'
                        );
 
-    parser.add_argument('-d', '--duration', metavar='DURATION', type=int, nargs='?',
+    parser.add_argument('-d', '--duration', metavar='DURATION (in hours)', type=int, nargs='?',
                         default=1,
-                        help='Duration of the symptom. If < 0, duration <= abs(TIME), ' +
-                        'else duration >= TIME'
+                        help='Duration of symptom in hours. -1 means < 1hr'
                        );
 
     parser.add_argument('-t', '--template', nargs='?', metavar='TEMPLATE',

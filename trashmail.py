@@ -69,8 +69,7 @@ if __name__ == '__main__':
 
     # Get Default Configuration
     SCRIPT_DIR = dirname( realpath(__file__) );
-    PARENT_DIR = dirname( dirname( realpath(__file__) ) );
-    CONFIG_FILE = PARENT_DIR + '/config.ini';
+    CONFIG_FILE = SCRIPT_DIR + '/config.ini';
     CONFIG = configparser.ConfigParser();
 
     try:
