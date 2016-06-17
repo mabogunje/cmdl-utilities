@@ -13,7 +13,7 @@ import getpass;
 import imaplib;
 import datetime;
 
-from os.path import dirname, abspath;
+from os.path import dirname, realpath;
 
 def connect_imap(server, mailbox, password):
     m = imaplib.IMAP4_SSL(server)  # server to connect to
@@ -68,8 +68,8 @@ class PasswordAction(argparse.Action):
 if __name__ == '__main__':
 
     # Get Default Configuration
-    SCRIPT_DIR = dirname( abspath(__file__) );
-    PARENT_DIR = dirname( dirname( abspath(__file__) ) );
+    SCRIPT_DIR = dirname( realpath(__file__) );
+    PARENT_DIR = dirname( dirname( realpath(__file__) ) );
     CONFIG_FILE = PARENT_DIR + '/config.ini';
     CONFIG = configparser.ConfigParser();
 
@@ -82,7 +82,7 @@ if __name__ == '__main__':
         sys.exit(1);
     
     # Setup Command Line Parser
-    parser = argparse.ArgumentParser('Process email deletion srguments');
+    parser = argparse.ArgumentParser('Move Old Emails in a FOLDER in your MAILBOX at SERVER to TRASH');
     
     parser.add_argument('-s', '--server', nargs='?',
             help='Email Host Server', default=CONFIG.get('TRASHMAIL', 'MAIL_SERVER'))
@@ -90,11 +90,8 @@ if __name__ == '__main__':
     parser.add_argument('-m', '--mailbox', nargs='?',
             help='Email account to access', default=CONFIG.get('TRASHMAIL', 'MAILBOX'));
 
-    parser.add_argument('-p', '--password', action=PasswordAction, nargs=0, 
-            required=True, help='Password to your email account');
-
-    parser.add_argument('-f', '--folder', nargs='?', required=True,
-            help='Email folder to clean');
+    parser.add_argument('-f', '--folder', nargs='?',
+            required=True, help='Email folder to clean');
 
     parser.add_argument('-t', '--trash', nargs='?', default=CONFIG.get('TRASHMAIL', 'TRASH_FOLDER'),
             help='Your Email Trash Folder');
@@ -102,6 +99,9 @@ if __name__ == '__main__':
     parser.add_argument('-b', '--before', type=int, nargs='?',
             default=CONFIG.get('TRASHMAIL', 'BEFORE'),
             help='Delete messages older than this number of days');
+
+    parser.add_argument('-p', '--password', action=PasswordAction, nargs=0, 
+            required=True, help='Password to your email account');
 
     remove_parser = parser.add_mutually_exclusive_group(required=False);
     remove_parser.add_argument('--force', dest='remove', action='store_true', help='Delete from server completely'); 

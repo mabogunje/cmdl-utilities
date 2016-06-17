@@ -12,7 +12,7 @@ import smtplib;
 import subprocess;
 import sys;
 
-from os.path import dirname, abspath;
+from os.path import dirname, realpath;
 from email.mime.text import MIMEText;
 from email.mime.multipart import MIMEMultipart;
 from time import strftime;
@@ -105,10 +105,11 @@ def notify(email, addresses):
 if __name__ =='__main__':
 
     # Get Default Configuration
-    SCRIPT_DIR = dirname( abspath(__file__) );
-    PARENT_DIR = dirname( dirname( abspath(__file__) ) );
+    SCRIPT_DIR = dirname( realpath(__file__) );
+    PARENT_DIR = dirname( dirname( realpath(__file__) ) );
     CONFIG_FILE = PARENT_DIR + '/config.ini';
     CONFIG = configparser.ConfigParser();
+    print PARENT_DIR, SCRIPT_DIR;
 
     try:
         CONFIG.read(CONFIG_FILE);
@@ -119,25 +120,27 @@ if __name__ =='__main__':
         sys.exit(1);
 
     # Setup Command Line Parser
-    parser = argparse.ArgumentParser(description='Process notification arguments');
+    parser = argparse.ArgumentParser('Email a Sick Notice about the SEVERITY of your symptoms TO one or more email addresses');
 
-    parser.add_argument('-s', '--severity', metavar='1-4', nargs='?', 
+    parser.add_argument('-s', '--severity', metavar='SEVERITY: 1-3', nargs='?', 
                         default=str(SEVERITY.MEDIUM),
                         help='Severity of the symptom'
                        );
 
-    parser.add_argument('-d', '--duration', metavar='TIME', type=int, nargs='?',
+    parser.add_argument('-d', '--duration', metavar='DURATION', type=int, nargs='?',
                         default=1,
                         help='Duration of the symptom. If < 0, duration <= abs(TIME), ' +
                         'else duration >= TIME'
                        );
 
-    parser.add_argument('-t', '--template', nargs='?', default='/'.join((SCRIPT_DIR, CONFIG.get('SICKLY', 'TEMPLATE'))),
+    parser.add_argument('-t', '--template', nargs='?', metavar='TEMPLATE',
+
+                        default='/'.join((SCRIPT_DIR, CONFIG.get('SICKLY', 'TEMPLATE'))),
                         required=False,
                         help='A Markdown Template to use for your email');
 
     parser.add_argument('-m', '--msg', nargs='?', default='NONE', help='Extra notes');
-    parser.add_argument('to', nargs='+', help='Addresses to notify');
+    parser.add_argument('to', nargs='+', help='Email Addresses to notify');
 
     args = parser.parse_args();
     
