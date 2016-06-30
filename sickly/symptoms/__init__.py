@@ -66,7 +66,7 @@ class Symptom:
         '''
 
         if self.compute_effect() is RSVP.FALSE:
-            respite = "Rest of Day (at least)";
+            respite = "the rest of the day";
         elif self.compute_effect() is RSVP.TRUE:
             respite = "1 hour (at least)" if (abs(self.timespan) > 1) else "1 hour (at most)";
         else:
