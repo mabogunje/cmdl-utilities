@@ -85,26 +85,26 @@ if __name__ == '__main__':
         sys.exit(1);
     
     # Setup Command Line Parser
-    parser = argparse.ArgumentParser('Move Old Emails in a FOLDER in your MAILBOX at SERVER to TRASH');
+    parser = argparse.ArgumentParser(description='Move Old Emails in a FOLDER in your MAILBOX at SERVER to TRASH',
+            add_help=True);
     
-    parser.add_argument('-s', '--server', nargs='?',
-            help='Email Host Server', default=CONFIG.get('TRASHMAIL', 'MAIL_SERVER'))
+    parser.add_argument('-s', '--server', nargs='?', default=CONFIG.get('TRASHMAIL', 'MAIL_SERVER'),
+            help='Email Host Server')
 
     parser.add_argument('-m', '--mailbox', nargs='?',
             help='Email account to access', default=CONFIG.get('TRASHMAIL', 'MAILBOX'));
 
-    parser.add_argument('-f', '--folder', nargs='?',
-            required=True, help='Email folder to clean');
+    parser.add_argument('-f', '--folder', nargs='?',required=True, 
+            help='Email folder to clean');
 
     parser.add_argument('-t', '--trash', nargs='?', default=CONFIG.get('TRASHMAIL', 'TRASH_FOLDER'),
             help='Your Email Trash Folder');
 
-    parser.add_argument('-b', '--before', type=int, nargs='?',
-            default=CONFIG.get('TRASHMAIL', 'BEFORE'),
+    parser.add_argument('-b', '--before', type=int, nargs='?', default=CONFIG.get('TRASHMAIL', 'BEFORE'),
             help='Delete messages older than this number of days');
 
-    parser.add_argument('-p', '--password', action=PasswordAction, nargs=0, 
-            required=True, help='Password to your email account');
+    parser.add_argument('-p', '--password', action=PasswordAction, nargs=1, required=True, 
+            help='Password to your email account');
 
     remove_parser = parser.add_mutually_exclusive_group(required=False);
     remove_parser.add_argument('--force', dest='remove', action='store_true', help='Delete from server completely'); 

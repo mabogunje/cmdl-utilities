@@ -124,7 +124,8 @@ if __name__ =='__main__':
         sys.exit(1);
 
     # Setup Command Line Parser
-    parser = argparse.ArgumentParser('Email a Sick Notice about the SEVERITY of your symptoms TO one or more email addresses');
+    parser = argparse.ArgumentParser(description='Email a Sick Notice about the SEVERITY of your symptoms TO one or more email addresses',
+            add_help=True);
 
     parser.add_argument('-s', '--severity', metavar='SEVERITY: 1=Mild | 2=Medium | 3=Severe', nargs='?', 
                         default=str(SEVERITY.MEDIUM),
