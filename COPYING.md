@@ -1,5 +1,5 @@
 CMDL-Utilities is a bunch of command-line scripts aimed at making a
-bunch of common programming tasks easier. 
+bunch of common tasks easier. 
 
 Copyright (C) 2016 Damola Mabogunje
 
