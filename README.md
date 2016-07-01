@@ -22,4 +22,4 @@
 ## License
 
 These utilities are provided under the [GNU LGPL PUBLIC LICENSE V3](http://www.gnu.org/licenses/lgpl-3.0-standalone.html) or later.
-See COPYING.md & COPYING.LESSER.md for details. 
+For more details, see COPYING.md & COPYING.LESSER.md. 
