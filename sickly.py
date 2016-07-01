@@ -27,6 +27,7 @@ except ImportError:
         print 'This script requires pygements and markdown to be installed.';
         print 'Please:';
         print 'pip install pygments markdown or easy_install pygments markdown';
+
         sys.exit(0);
 
 def parse_symptom(args):
@@ -113,8 +114,13 @@ if __name__ =='__main__':
         CONFIG.read(CONFIG_FILE);
         assert('USER' in CONFIG.sections());
         assert('SICKLY' in CONFIG.sections());
-    except:
-        print 'There is no configuration file at %s. Please create one first. See config.sample.ini for an example' % CONFIG_FILE;
+        assert(CONFIG.get('SICKLY', 'TEMPLATE'));
+    except Exception as err:
+        print err
+        print 'The configuration file at %s is either missing or incomplete. ' % CONFIG_FILE;
+        print 'Please create one properly first.';
+        print 'See config.sample.ini for an example.';
+        
         sys.exit(1);
 
     # Setup Command Line Parser

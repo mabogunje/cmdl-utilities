@@ -76,8 +76,12 @@ if __name__ == '__main__':
         CONFIG.read(CONFIG_FILE);
         assert('USER' in CONFIG.sections());
         assert('TRASHMAIL' in CONFIG.sections());
-    except:
-        print 'There is no configuration file at %s. Please create one first. See config.sample.ini for an example' % CONFIG_FILE;
+    except Exception as err:
+        print err
+        print 'The configuration file at %s is either missing or incomplete. ' % CONFIG_FILE;
+        print 'Please create one properly first.';
+        print 'See config.sample.ini for an example.';
+
         sys.exit(1);
     
     # Setup Command Line Parser

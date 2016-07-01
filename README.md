@@ -6,18 +6,26 @@
 
 ## Utilities
  
-1.  __Sickly__:  
-    A script for sending automated sick notices by email. Your emails can be customized by changing
-    the defaut markdown template provided at sickly/templates/default.md or creating your own.
+### 1. Sickly  
+    
+A script for sending automated sick notices by email. Your emails can be customized by changing
+the defaut markdown template provided at sickly/templates/default.md or creating your own.
 
-        Run ./sickly.py -h for more.
+    Run ./sickly.py -h for more.
 
-2.  __Trashmail__:  
-    A script for deleting/archiving old mail in you mailbox. You can specify how old the mail must be 
-    (in days), and what folder it should be archived to (Trash by default). You can also decide
-    whether to delete the mail permanently or not. By default your mails are kept.
+### 2. Trashmail  
+    
+A script for deleting/archiving old mail in you mailbox. You can specify how old the mail must be 
+(in days), and what folder it should be archived to (Trash by default). You can also decide
+whether to delete the mail permanently or not. By default your mails are kept.
 
-        Run ./trashmail.py -h for more.
+    Run ./trashmail.py -h for more.
+
+### 3. TitleCase
+
+A script for converting all nested file and subfolder names of a given directory into 'Title Case'.
+
+    Run ./titlecase.py -h for more
 
 ## License
 
