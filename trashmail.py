@@ -103,7 +103,7 @@ if __name__ == '__main__':
     parser.add_argument('-b', '--before', type=int, nargs='?', default=CONFIG.get('TRASHMAIL', 'BEFORE'),
             help='Delete messages older than this number of days');
 
-    parser.add_argument('-p', '--password', action=PasswordAction, nargs=1, required=True, 
+    parser.add_argument('-p', '--password', action=PasswordAction, nargs='?', required=True, 
             help='Password to your email account');
 
     remove_parser = parser.add_mutually_exclusive_group(required=False);
