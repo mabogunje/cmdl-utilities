@@ -8,37 +8,65 @@
 '''
 
 import argparse;
-import ConfigParser as configparser;
+import configparser;
 import getpass;
 import imaplib;
 import datetime;
+import re;
 
 from os.path import dirname, realpath;
+from simple_term_menu import TerminalMenu;
 
 def connect_imap(server, mailbox, password):
     m = imaplib.IMAP4_SSL(server)  # server to connect to
     print("{0} Connecting to mailbox via IMAP...".format(datetime.datetime.today().strftime("%Y-%m-%d %H:%M:%S")));
     m.login(mailbox, password);
- 
+
     return m;
  
+def get_folders(mailbox):
+        status, folders = mailbox.list();
+
+        if status == "OK":
+            folders = list(map(lambda f: f.decode(), folders));
+            folder_regex = r'["\']?([^"\']+)["\']?\s*$';
+            
+            for index, f in enumerate(folders):
+                match = re.search(folder_regex, f);
+
+                if match:
+                    folders[index] = match.group(1);
+            
+            return folders;
+        else:
+            print('Mailbox status is: ', status);
+            print('Could not retrieve folders');
+            return;
+
 def move_to_trash_before_date(m, folder, trash, days_before):
     no_of_msgs = int(m.select(folder)[1][0])  # required to perform search, m.list() for all lables, '[Gmail]/Sent Mail'
     print("- Found a total of {1} messages in '{0}'.".format(folder, no_of_msgs))
  
  
     before_date = (datetime.date.today() - datetime.timedelta(days_before)).strftime("%d-%b-%Y")  # date string, 04-Jan-2013
-    typ, data = m.search(None, '(BEFORE {0})'.format(before_date))  # search pointer for msgs before before_date
- 
-    if data != ['']:  # if not empty list means messages exist
-        no_msgs_del = data[0].split()[-1]  # last msg id in the list
-        print("- Marked {0} messages for removal with dates before {1} in '{2}'.".format(no_msgs_del, before_date, folder))
+    typ, data = m.search(None, '(BEFORE {})'.format(before_date))  # search pointer for msgs before before_date
 
-        # Move to Trash
-        m.copy("1:{0}".format(no_msgs_del), trash)  # copy to trash
-        m.store("1:{0}".format(no_msgs_del), '+FLAGS.SILENT', '\\DELETED'); # mark original for deletion
-        m.expunge(); # delete original
-        print("{0} messages moved to {1}".format(no_msgs_del, trash))
+    if data[0]:
+        no_msgs_del = data[0].split()[-1] if data else None;  # last msg id in the list
+
+        if no_msgs_del:
+            if isinstance(no_msgs_del, bytes):
+                no_msgs_del = no_msgs_del.decode();
+
+            print("- Marked {} messages for removal with dates before {} in '{}'.".format(no_msgs_del, before_date, folder))
+
+            # Move to Trash
+            print('Moving to Trash...');
+            m.copy("1:{}".format(no_msgs_del), trash)  # copy to trash
+            m.store("1:{}".format(no_msgs_del), '+FLAGS.SILENT', '\\DELETED'); # mark original for deletion
+            m.expunge(); # delete original
+        
+            print("{} messages moved to {}".format(no_msgs_del, trash))
     else:
         print("- Nothing to remove.")
  
@@ -62,8 +90,11 @@ def disconnect_imap(m):
  
 class PasswordAction(argparse.Action):
     def __call__ (self, parser, namespace, values, option_string=None):
-        mypass = getpass.getpass();
-        setattr(namespace, self.dest, mypass);
+        print(values)
+        if values is None:
+            values = getpass.getpass(f"Enter password for {option_string}: ");
+        
+        setattr(namespace, self.dest, values);
 
 if __name__ == '__main__':
 
@@ -77,10 +108,10 @@ if __name__ == '__main__':
         assert('USER' in CONFIG.sections());
         assert('TRASHMAIL' in CONFIG.sections());
     except Exception as err:
-        print err
-        print 'The configuration file at %s is either missing or incomplete. ' % CONFIG_FILE;
-        print 'Please create one properly first.';
-        print 'See config.sample.ini for an example.';
+        print(err)
+        print('The configuration file at {} is either missing or incomplete.'.format(CONFIG_FILE));
+        print('Please create one properly first.');
+        print('See config.sample.ini for an example.');
 
         sys.exit(1);
     
@@ -94,7 +125,7 @@ if __name__ == '__main__':
     parser.add_argument('-m', '--mailbox', nargs='?',
             help='Email account to access', default=CONFIG.get('TRASHMAIL', 'MAILBOX'));
 
-    parser.add_argument('-f', '--folder', nargs='?',required=True, 
+    parser.add_argument('-f', '--folder', nargs='?', 
             help='Email folder to clean');
 
     parser.add_argument('-t', '--trash', nargs='?', default=CONFIG.get('TRASHMAIL', 'TRASH_FOLDER'),
@@ -103,7 +134,7 @@ if __name__ == '__main__':
     parser.add_argument('-b', '--before', type=int, nargs='?', default=CONFIG.get('TRASHMAIL', 'BEFORE'),
             help='Delete messages older than this number of days');
 
-    parser.add_argument('-p', '--password', action=PasswordAction, nargs='?', required=True, 
+    parser.add_argument('-p', '--password', action=PasswordAction, nargs='?', default=CONFIG.get('TRASHMAIL', 'SECRETKEY'),
             help='Password to your email account');
 
     remove_parser = parser.add_mutually_exclusive_group(required=False);
@@ -116,7 +147,19 @@ if __name__ == '__main__':
 
     # Connect to account with specified args and delete/archive email
     m_con = connect_imap(args.server, args.mailbox, args.password);
-    move_to_trash_before_date(m_con, args.folder, args.trash, args.before)  # folder cleanup
+
+    # If folder isn't specified provide a menu to pick it from 
+    if not args.folder:
+        options = get_folders(m_con);
+        terminal_menu = TerminalMenu(options, title="=== AVAILABLE FOLDERS ===");
+        menu_entry = terminal_menu.show();
+
+        if menu_entry is not None:
+            selected_option = options[menu_entry];
+            print(f"You selected: {selected_option}");
+            args.folder = selected_option;
+
+    move_to_trash_before_date(m_con, args.folder, args.trash, args.before);  # folder cleanup
  
     if(args.remove): 
         empty_folder(m_con, args.trash, do_expunge=True);  # can send do_expunge=False, default True
