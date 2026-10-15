@@ -100,24 +100,24 @@ class Symptom:
         Returns the human-readable time span of the symptom
         '''
 
-        format = '%s %d hour(s)';
+        format = '{} {} hour(s)';
 
         if(self.timespan < 0):
-            return format % ('under', abs(self.timespan));
+            return format.format('under', abs(self.timespan));
         else:
-            return format % ('over', abs(self.timespan));
+            return format.format('over', abs(self.timespan));
 
     def __str__(self):
 
         delta_str = "\n";
 
         if (self.status() != self.forecast()):
-            delta_str = "\nMight become %s\n" % self.forecast(); 
+            delta_str = "\nMight become {}\n".format(self.forecast()); 
 
-        format = "Ongoing %(severity_now)s symptoms of %(duration)s.\
-                %(delta)s\
-                Time to recover: %(respite)s\n\
-                Attending class? %(effect)s";
+        format = "Ongoing {severity_now} symptoms of {duration}.\
+                {delta}\
+                Time to recover: {respite}\n\
+                Attending class? {effect}";
 
         values = { 'severity_now': self.status(),
                    'duration': self.duration(),
@@ -126,5 +126,5 @@ class Symptom:
                    'effect': self.effect()
                   };
 
-        return format % values;
+        return format.format(**values);
 

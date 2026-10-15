@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# Created by [Damola Mabogunje](http://mabogunje.net/)
 
 '''
 @author: Damola Mabogunje <damola@mabogunje.net>
@@ -7,14 +8,13 @@
 '''
 
 import argparse;
-import ConfigParser as configparser;
+import configparser;
 import smtplib;
 import subprocess;
 import sys;
 
 from os.path import dirname, realpath;
-from email.mime.text import MIMEText;
-from email.mime.multipart import MIMEMultipart;
+from email.message import EmailMessage;
 from time import strftime;
 from datetime import datetime;
 
@@ -23,10 +23,11 @@ from sickly.symptoms import *;
 try:
     import pygments;
     import markdown;
-except ImportError:
-        print 'This script requires pygements and markdown to be installed.';
-        print 'Please:';
-        print 'pip install pygments markdown or easy_install pygments markdown';
+except ImportError as err:
+        print(err);
+        print('This script requires pygments and markdown to be installed.');
+        print('Please:');
+        print('pip install pygments markdown or easy_install pygments markdown');
 
         sys.exit(0);
 
@@ -56,7 +57,7 @@ def compose_email(symptom, msg, template):
     try:
         template = open(template, 'r');
     except IOError:
-        print 'No template at %s. Please create one.' % template; 
+        print(f'No template at {template}. Please create one.'); 
         sys.exit(1);
 
     message = template.read();
@@ -70,37 +71,54 @@ def compose_email(symptom, msg, template):
                "msg": msg,
                "user": CONFIG.get('USER', 'NAME')
              };
-    message = message % values;
+    message = message.format(**values);
     message = message.strip();
 
     # Convert to Stylized HTML
+    html = """\
+            <!DOCTYPE html>
+            <html>
+                <head>
+                    <style type="text/css">
+                    {css}
+                    </style>
+                </head>
+                <body>
+                    {message}
+                </body>
+            </html>
+            """
     css = subprocess.check_output(['pygmentize', '-S', 'default', '-f', 'html']);
-    html = markdown.markdown(message, ['extra', 'codehilite']);
-    html = '<style type="text/css">'+css+'</style>'+html;
+    markup = markdown.markdown(message, extensions=['extra', 'codehilite']);
+    content = {"css": css.decode(), "message": markup}
+    html = html.format(**content)
 
     # Create Email
-    email = MIMEMultipart('alternative');
-    email['Subject'] = "Sick Notice (%s)" % datetime.today().strftime("%h %d %Y");
+    email = EmailMessage();
+    email['Subject'] = "Sick Notice {}".format(datetime.today().strftime("%h %d %Y"));
     email['From'] = CONFIG.get('USER', 'EMAIL');
     email['To'] = ', '.join(args.to);
 
-    # Attach Plain Text and HTML versions
-    email.attach(MIMEText(message, 'plain'));
-    email.attach(MIMEText(html, 'html'));
+    email.set_content(message); # Plain text version
+    email.add_alternative(html, subtype="html") # HTML Version
 
     return email;
 
 def notify(email, addresses):
 
-    mailer = smtplib.SMTP(CONFIG.get('SICKLY', 'MAIL_SERVER'), CONFIG.get('SICKLY', 'PORT'));
-    mailer.ehlo();
-    mailer.starttls();
-    mailer.ehlo();
-    mailer.login(CONFIG.get('SICKLY', 'USERNAME'), CONFIG.get('SICKLY', 'PASSWORD'));
-    mailer.sendmail(email['From'], addresses, email.as_string());
-    mailer.close();
+    print('Connecting to the SMTP Server...');
 
-    print "Sick Notification Successfully Sent to %s" % addresses;
+    with smtplib.SMTP(CONFIG.get('SICKLY', 'MAIL_SERVER'), CONFIG.get('SICKLY', 'PORT')) as server:
+        
+        server.ehlo(); # Identify yourself to the server
+        server.starttls(); # Initiate Secure Connection
+        server.ehlo(); # Reidentify yourself over secure connection
+
+        # Login and Send Email
+        server.login(CONFIG.get('SICKLY', 'USERNAME'), CONFIG.get('SICKLY', 'SECRETKEY'));
+        server.send_message(email);
+
+    print(f"Sick Notification Successfully Sent to {addresses}");
 
 
 if __name__ =='__main__':
@@ -116,10 +134,9 @@ if __name__ =='__main__':
         assert('SICKLY' in CONFIG.sections());
         assert(CONFIG.get('SICKLY', 'TEMPLATE'));
     except Exception as err:
-        print err
-        print 'The configuration file at %s is either missing or incomplete. ' % CONFIG_FILE;
-        print 'Please create one properly first.';
-        print 'See config.sample.ini for an example.';
+        print(f'The configuration file at {CONFIG_FILE} is either missing or incomplete. ');
+        print('Please create one properly first.');
+        print('See config.sample.ini for an example.');
         
         sys.exit(1);
 
@@ -152,10 +169,10 @@ if __name__ =='__main__':
     try:
         symptom = parse_symptom(args);
     except IndexError:
-        print "Severity ranges must be of the format 'min-max' i.e 1-2";
+        print("Severity ranges must be of the format 'min-max' i.e 1-2");
         sys.exit();
     except AssertionError:
-        print "Severity out of range";
+        print("Severity out of range");
         sys.exit();
     else:
         email = compose_email(symptom, args.msg, args.template);
@@ -164,6 +181,6 @@ if __name__ =='__main__':
     try:
         notify(email, args.to);
     except Exception as error:
-        print error;
-        print 'Unable to send email';
+        print(error);
+        print('Unable to send email');
 
