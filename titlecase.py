@@ -16,8 +16,8 @@ import ast;
 try:
     from configobj import ConfigObj;
 except Exception as err:
-    print err;
-    print 'This script requires the ConfigObj library to run. See http://www.voidspace.org.uk/python/configobj.html.';
+    print(err);
+    print('This script requires the configobj library to run. See http://www.voidspace.org.uk/python/configobj.html.');
     sys.exit(1);
 
 def exclude_words(name):
@@ -42,10 +42,10 @@ if __name__ == '__main__':
         assert('IGNORABLE_WORDS' in CONFIG['TITLECASE']);
         assert('DANGEROUS_CHARS' in CONFIG['TITLECASE']);
     except Exception as err:
-        print err
-        print 'The configuration file at %s is either missing or incomplete. ' % CONFIG_FILE;
-        print 'Please create one properly first.';
-        print 'See config.sample.ini for an example.';
+        print(err)
+        print(f'The configuration file at {CONFIG_FILE} is either missing or incomplete. ', CONFIG_FILE);
+        print('Please create one properly first.');
+        print('See config.sample.ini for an example.');
         
         sys.exit(1);
 
@@ -71,7 +71,7 @@ for root, dirs, files in os.walk(args.directory):
 
         name = exclude_words(name)
         shutil.move(root+"/"+f, root+"/"+name)
-        print f, ' -> ', name;
+        print(f, ' -> ', name);
 
 for root, dirs, files in os.walk(args.directory):
     for dr in dirs:
